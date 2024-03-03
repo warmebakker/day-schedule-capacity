@@ -18,7 +18,7 @@ const dayScafold = ref<VerticalItem[]>([
     { height: '', content: '', top: '62.5%', capacity: 0, dateTime: '' },
     { height: '', content: '18:00', top: '75%', capacity: 0, dateTime: '' },
     { height: '', content: '', top: '87.5%', capacity: 0, dateTime: '' },
-    { height: '', content: '', top: '99.7%', capacity: 0, dateTime: '' },
+    { height: '', content: '23:59', top: '99.7%', capacity: 0, dateTime: '' },
 ]);
 
 const capacityColors: { [key: number]: string } = {
@@ -68,40 +68,77 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
 
 <template>
     <div>
-        <h3 style="margin-top: 3rem;">{{ title }}</h3>
+        <p style="text-decoration: underline; margin-top: 3rem; text-align: center;">{{ title }}</p>
 
-        <div style="display: grid; grid-template-columns: .3fr 1fr; height: 100%;">
-            <ul style="width: 100%; height: 100%; position: relative; list-style-type: none;">
-                <li v-for="(item, index) in dayScafold" :key="index" style="position: absolute; width: 100%;"
-                    :style="{ top: item.top, height: item.height }">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; height: 100%;">
-                        <div
-                            style="font-size: x-small; font-family: 'Courier New', Courier, monospace; transform: translateY(-5px); text-align: end; padding-right: .1rem;">
-                            {{ item.content }}
-                        </div>
-                        <div style="border: dashed gray; border-width: 1px 0 0 0;">
-                        </div>
-                    </div>
-                </li>
-            </ul>
-            <ul style="width: 100%; height: 100%; position: relative; list-style-type: none;">
-                <li v-for="(item, index) in items" :key="index"
-                    style="display: flex; justify-content: center; position: absolute; width: 100%; border: dashed transparent; border-width: 1px 1px 1px 1px;"
-                    :style="{ top: item.top, height: item.height }"
-                    v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false }">
 
-                    <div id="inner" style="display: flex; justify-content: center; width: 100%; border-radius: 4px;"
-                        :style="{ background: capacityColors[item.capacity] }">
+        <div style="position: relative">
+            <div id="background-layer" class="grid-container">
+                <div style="grid-column: 1;">
+                    <ul>
+                        <li v-for="(item, index) in dayScafold" :key="index"
+                            :style="{ top: item.top, height: item.height }">
+                            <div
+                                style="text-wrap: nowrap; white-space: nowrap; font-size: x-small; font-family: 'Courier New', Courier, monospace; transform: translateY(-5px); text-align: end;">
+                                {{ item.content }}
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div style="grid-column: 2 / span 2;">
+                    <ul style="transform: translateX(-5px);">
+                        <li v-for="(item, index) in dayScafold" :key="index"
+                            :style="{ top: item.top, height: item.height }">
+                            <div style="border: dashed black 1px; opacity: .3;"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="foreground-layer" class="grid-container">
+                <ul style="grid-column: 2;">
+                    <li v-for="(item, index) in items" :key="index"
+                        style="display: flex; justify-content: center; border: dashed transparent; border-width: 1px 1px 1px 1px;"
+                        :style="{ top: item.top, height: item.height }"
+                        v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false }">
 
-                        <div id="cap" v-if="parseInt(item.height!.replace('%', '')) > 5"
-                            style="color: white; font-size: large; font-family: 'Courier New', Courier, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
-                            {{ item.capacity }}
+                        <div id="inner" style="display: flex; justify-content: center; border-radius: 4px;"
+                            :style="{ background: capacityColors[item.capacity] }">
+
+                            <div id="cap" v-if="parseInt(item.height!.replace('%', '')) > 5"
+                                style="color: white; font-size: large; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
+                                {{ item.capacity }}
+                            </div>
                         </div>
-                    </div>
-                </li>
-            </ul>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+div {
+    height: 100%;
+    width: 100%;
+}
+
+ul {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    width: 100%;
+    height: 100%;
+}
+
+li {
+    position: absolute;
+    width: 100%;
+}
+
+.grid-container {
+    position: absolute;
+    display: grid;
+    grid-template-columns: 1.4fr 4fr .1fr;
+    gap: .5rem;
+}
+</style>
