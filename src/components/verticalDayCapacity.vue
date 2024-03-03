@@ -21,23 +21,26 @@ const dayLayout = ref<VerticalItem[]>([
     { height: '', content: '', top: '99.7%', capacity: 0, dateTime: '' },
 ]);
 
-const capacityColors: { [key: number]: string } = {};
+const capacityColors: { [key: number]: string } = {
+    0: 'repeating-linear-gradient(45deg,transparent,transparent 1px,#f0f0f099 1px,#f0f0f099 10px)'
+};
 
 onBeforeMount(() => {
     items.value = calculateItemsHeight(props.schedule);
+    createCapacityColors(props.schedule);
+});
 
-    // get an array of unique capacity values from the schedule
-    const capacities = Array.from(new Set(props.schedule.map(item => item.capacity)));
-
-    capacityColors[0] = 'repeating-linear-gradient(45deg,white,white 1px,#f0f0f0 1px,#f0f0f0 10px)';
-
+function createCapacityColors(schedule: ItemBase[]): void {
+    // Get unique capacities
+    const capacities = Array.from(new Set(schedule.map(item => item.capacity)));
+    // Create a color for each capacity
     capacities.forEach((capacity, index) => {
         if (!capacityColors[capacity]) {
-            const color = index % 2 === 0 ? 'red' : 'blue';
+            const color = `hsl(${index * 15}, 70%, 65%)`;
             capacityColors[capacity] = color;
         }
     });
-});
+}
 
 function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
     const items = schedule as VerticalItem[];
