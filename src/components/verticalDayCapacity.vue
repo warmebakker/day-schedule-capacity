@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const items = ref<VerticalItem[]>([]);
 
-const dayLayout = ref<VerticalItem[]>([
+const dayScafold = ref<VerticalItem[]>([
     { height: '', content: '0:00', top: '0%', capacity: 0, dateTime: '' },
     { height: '', content: '', top: '12.5%', capacity: 0, dateTime: '' },
     { height: '', content: '6:00', top: '25%', capacity: 0, dateTime: '' },
@@ -71,9 +71,8 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
         <h3 style="margin-top: 3rem;">{{ title }}</h3>
 
         <div style="display: grid; grid-template-columns: .3fr 1fr; height: 100%;">
-
             <ul style="width: 100%; height: 100%; position: relative; list-style-type: none;">
-                <li v-for="(item, index) in dayLayout" :key="index" style="position: absolute; width: 100%;"
+                <li v-for="(item, index) in dayScafold" :key="index" style="position: absolute; width: 100%;"
                     :style="{ top: item.top, height: item.height }">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; height: 100%;">
                         <div
@@ -87,12 +86,17 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
             </ul>
             <ul style="width: 100%; height: 100%; position: relative; list-style-type: none;">
                 <li v-for="(item, index) in items" :key="index"
-                    style="display: flex; justify-content: center; position: absolute; width: 100%; border: solid white; border-width: 1px 1px 1px 1px; border-radius: 4px; background-color: black;"
-                    :style="{ background: capacityColors[item.capacity], top: item.top, height: item.height }">
+                    style="display: flex; justify-content: center; position: absolute; width: 100%; border: dashed transparent; border-width: 1px 1px 1px 1px;"
+                    :style="{ top: item.top, height: item.height }"
+                    v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false }">
 
-                    <div id="cap" v-if="parseInt(item.height!.replace('%', '')) > 5"
-                        style="color: aliceblue; font-size: small; font-family: 'Courier New', Courier, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
-                        {{ item.capacity }}
+                    <div id="inner" style="display: flex; justify-content: center; width: 100%; border-radius: 4px;"
+                        :style="{ background: capacityColors[item.capacity] }">
+
+                        <div id="cap" v-if="parseInt(item.height!.replace('%', '')) > 5"
+                            style="color: white; font-size: large; font-family: 'Courier New', Courier, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
+                            {{ item.capacity }}
+                        </div>
                     </div>
                 </li>
             </ul>
@@ -100,12 +104,4 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
     </div>
 </template>
 
-<style scoped>
-#striped {
-    background: repeating-linear-gradient(45deg,
-            white,
-            white 1px,
-            #f0f0f0 1px,
-            #f0f0f0 10px);
-}
-</style>
+<style scoped></style>
