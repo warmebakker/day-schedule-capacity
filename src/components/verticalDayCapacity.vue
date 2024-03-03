@@ -4,7 +4,7 @@ import { VerticalItem, ItemBase } from './types';
 
 const props = defineProps<{
     schedule: ItemBase[],
-    title: string
+    title?: string
 }>()
 
 const items = ref<VerticalItem[]>([]);
@@ -26,6 +26,13 @@ const capacityColors: { [key: number]: string } = {
 };
 
 onBeforeMount(() => {
+    // if the first item fom props.schedule is not time 0:00, add a 0:00 item
+    var firstItem = new Date(props.schedule[0].dateTime);
+    if (firstItem.getHours() !== 0 || firstItem.getMinutes() !== 0) {
+        firstItem.setHours(0);
+        firstItem.setMinutes(0);
+        props.schedule.unshift({ capacity: 0, dateTime: firstItem.toLocaleString() });
+    }
     items.value = calculateItemsHeight(props.schedule);
     createCapacityColors(props.schedule);
 });
@@ -68,7 +75,8 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
 
 <template>
     <div>
-        <p style="text-decoration: underline; margin-top: 3rem; text-align: center;">{{ title }}</p>
+        <p style="text-decoration: underline; margin-top: 3rem; text-align: center;">{{ title || new
+            Date(items[0].dateTime).toDateString() }}</p>
 
 
         <div style="position: relative">
@@ -78,7 +86,7 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
                         <li v-for="(item, index) in dayScafold" :key="index"
                             :style="{ top: item.top, height: item.height }">
                             <div
-                                style="text-wrap: nowrap; white-space: nowrap; font-size: x-small; font-family: 'Courier New', Courier, monospace; transform: translateY(-5px); text-align: end;">
+                                style="text-wrap: nowrap; white-space: nowrap; font-size: x-small; font-family: 'Courier New', Courier, monospace; transform: translateY(-5px); text-align: end;overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {{ item.content }}
                             </div>
                         </li>
@@ -103,7 +111,7 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
                         <div id="inner" style="display: flex; justify-content: center; border-radius: 4px;"
                             :style="{ background: capacityColors[item.capacity] }">
 
-                            <div id="cap" v-if="parseInt(item.height!.replace('%', '')) > 5"
+                            <div id="cap" v-if="item.capacity > 0 && parseInt(item.height!.replace('%', '')) > 5"
                                 style="color: white; font-size: large; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
                                 {{ item.capacity }}
                             </div>
@@ -133,6 +141,11 @@ ul {
 li {
     position: absolute;
     width: 100%;
+    transition: transform 0.1s ease-in;
+}
+
+li:hover {
+    transform: scale(1.05);
 }
 
 .grid-container {
