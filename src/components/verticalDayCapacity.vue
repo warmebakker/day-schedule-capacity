@@ -1,11 +1,26 @@
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue';
-import { VerticalItem, ItemBase } from './types';
 
-const props = defineProps<{
+export interface ItemBase {
+    dateTime: string;
+    capacity: number;
+    content?: string;
+};
+
+interface VerticalItem extends ItemBase {
+    top?: string;
+    height?: string;
+};
+
+const props = withDefaults(defineProps<{
     schedule: ItemBase[],
-    title?: string
-}>()
+    title?: string,
+    showYaxis?: boolean,
+    showYaxisTimes?: boolean,
+}>(), {
+    showYaxis: true,
+    showYaxisTimes: true
+});
 
 const items = ref<VerticalItem[]>([]);
 
@@ -75,13 +90,12 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
 
 <template>
     <div>
-        <p style="text-decoration: underline; margin-top: 3rem; text-align: center;">{{ title || new
+        <p style="text-decoration: underline; text-align: center;">{{ title || new
             Date(items[0].dateTime).toDateString() }}</p>
 
-
         <div style="position: relative">
-            <div id="background-layer" class="grid-container">
-                <div style="grid-column: 1;">
+            <div v-if="props.showYaxis" class="grid-container">
+                <div v-if="props.showYaxisTimes" style="grid-column: 1;">
                     <ul>
                         <li v-for="(item, index) in dayScafold" :key="index"
                             :style="{ top: item.top, height: item.height }">
@@ -101,7 +115,7 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
                     </ul>
                 </div>
             </div>
-            <div id="foreground-layer" class="grid-container">
+            <div class="grid-container">
                 <ul style="grid-column: 2;">
                     <li v-for="(item, index) in items" :key="index"
                         style="display: flex; justify-content: center; border: dashed transparent; border-width: 1px 1px 1px 1px;"
