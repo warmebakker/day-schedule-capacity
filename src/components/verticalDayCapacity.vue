@@ -8,8 +8,9 @@ export interface ItemBase {
 };
 
 interface VerticalItem extends ItemBase {
-    top?: string;
     height?: string;
+    startsAtDayMinute?: number;
+    endsAtDayMinute?: number;
 };
 
 const props = withDefaults(defineProps<{
@@ -24,31 +25,44 @@ const props = withDefaults(defineProps<{
 
 const items = ref<VerticalItem[]>([]);
 
-const dayScafold = ref<VerticalItem[]>([
-    { height: '', content: '0:00', top: '0%', capacity: 0, dateTime: '' },
-    { height: '', content: '', top: '12.5%', capacity: 0, dateTime: '' },
-    { height: '', content: '6:00', top: '25%', capacity: 0, dateTime: '' },
-    { height: '', content: '', top: '37.5%', capacity: 0, dateTime: '' },
-    { height: '', content: '12:00', top: '50%', capacity: 0, dateTime: '' },
-    { height: '', content: '', top: '62.5%', capacity: 0, dateTime: '' },
-    { height: '', content: '18:00', top: '75%', capacity: 0, dateTime: '' },
-    { height: '', content: '', top: '87.5%', capacity: 0, dateTime: '' },
-    { height: '', content: '23:59', top: '99.7%', capacity: 0, dateTime: '' },
-]);
+// const dayScafold = ref<VerticalItem[]>([
+//     { height: '', content: '0:00', top: '0%', capacity: 0, dateTime: '' },
+//     { height: '', content: '', top: '12.5%', capacity: 0, dateTime: '' },
+//     { height: '', content: '6:00', top: '25%', capacity: 0, dateTime: '' },
+//     { height: '', content: '', top: '37.5%', capacity: 0, dateTime: '' },
+//     { height: '', content: '12:00', top: '50%', capacity: 0, dateTime: '' },
+//     { height: '', content: '', top: '62.5%', capacity: 0, dateTime: '' },
+//     { height: '', content: '18:00', top: '75%', capacity: 0, dateTime: '' },
+//     { height: '', content: '', top: '87.5%', capacity: 0, dateTime: '' },
+//     { height: '', content: '23:59', top: '99.7%', capacity: 0, dateTime: '' },
+// ]);
 
 const capacityColors: { [key: number]: string } = {
     0: 'repeating-linear-gradient(45deg,transparent,transparent 1px,#f0f0f099 1px,#f0f0f099 10px)'
 };
 
 onBeforeMount(() => {
-    // if the first item fom props.schedule is not time 0:00, add a 0:00 item
+    // if the first item fom props.schedule is not time 0:00, add it
     var firstItem = new Date(props.schedule[0].dateTime);
-    if (firstItem.getHours() !== 0 || firstItem.getMinutes() !== 0) {
+    if (firstItem.getHours() + firstItem.getMinutes() !== 0) {
         firstItem.setHours(0);
         firstItem.setMinutes(0);
         props.schedule.unshift({ capacity: 0, dateTime: firstItem.toLocaleString() });
     }
+
+    // check if props.schedule ends at 23:59, if not add it
+    var lastItem = new Date(props.schedule[props.schedule.length - 1].dateTime);
+    if (lastItem.getHours() + lastItem.getMinutes() !== 1439) {
+        lastItem.setHours(23);
+        lastItem.setMinutes(59);
+        props.schedule.push({ capacity: 0, dateTime: lastItem.toLocaleString() });
+    }
+
     items.value = calculateItemsHeight(props.schedule);
+
+    // remove last item with time 23:59, it has no height and is not shown
+    items.value.pop();
+
     createCapacityColors(props.schedule);
 });
 
@@ -68,33 +82,28 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
     const items = schedule as VerticalItem[];
 
     for (let i = 0; i < items.length; i++) {
-        let item = items[i];
+        const item = items[i];
         const date = new Date(item.dateTime);
         item.content = `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-        const minutesFromMidnight = (date.getHours() * 60 + date.getMinutes()) | 0;
-        item.top = `${((minutesFromMidnight / 1440) * 100).toFixed(0)}%`;
+        item.startsAtDayMinute = (date.getHours() * 60 + date.getMinutes()) | 0;
     }
 
     for (let i = 0; i < items.length - 1; i++) {
-        const currentTop = parseInt(items[i].top!);
-        const nextTop = parseInt(items[i + 1].top || '100');
-        items[i].height = `${nextTop - currentTop}%`;
+        items[i].height = `${((items[i + 1].startsAtDayMinute! - items[i].startsAtDayMinute!) / 1440 * 100).toFixed(2)}%`;
     }
-
-    const lastIndex = props.schedule.length - 1;
-    items[lastIndex].height = `calc(100% - ${items[lastIndex].top})`;
 
     return items;
 }
 </script>
 
 <template>
-    <div>
-        <p style="text-decoration: underline; text-align: center;">{{ title || new
-            Date(items[0].dateTime).toDateString() }}</p>
+    <div class="container">
+        <p style="text-decoration: underline; text-align: center;">
+            {{ title || new Date(items[0].dateTime).toDateString() }}
+        </p>
 
-        <div style="position: relative">
-            <div v-if="props.showYaxis" class="grid-container">
+        <!-- <div> -->
+        <!-- <div v-if="props.showYaxis" class="grid-container">
                 <div v-if="props.showYaxisTimes" style="grid-column: 1;">
                     <ul>
                         <li v-for="(item, index) in dayScafold" :key="index"
@@ -114,24 +123,13 @@ function calculateItemsHeight(schedule: ItemBase[]): VerticalItem[] {
                         </li>
                     </ul>
                 </div>
-            </div>
-            <div class="grid-container">
-                <ul style="grid-column: 2;">
-                    <li v-for="(item, index) in items" :key="index"
-                        style="display: flex; justify-content: center; border: dashed transparent; border-width: 1px 1px 1px 1px;"
-                        :style="{ top: item.top, height: item.height }"
-                        v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false }">
-
-                        <div id="inner" style="display: flex; justify-content: center; border-radius: 4px;"
-                            :style="{ background: capacityColors[item.capacity] }">
-
-                            <div id="cap" v-if="item.capacity > 0 && parseInt(item.height!.replace('%', '')) > 5"
-                                style="color: white; font-size: large; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; justify-content: center;">
-                                {{ item.capacity }}
-                            </div>
-                        </div>
-                    </li>
-                </ul>
+            </div> -->
+        <div class="stacked-schedules">
+            <div class="schedule" v-for="(item, index) in items" :key="index" :style="{ height: item.height, background: capacityColors[item.capacity] }"
+                v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false }">
+                <div class="capacitynumber" v-if="item.capacity > 0 && parseInt(item.height!.replace('%', '')) > 5">
+                    {{ item.capacity }}
+                </div>
             </div>
         </div>
     </div>
@@ -143,29 +141,37 @@ div {
     width: 100%;
 }
 
-ul {
-    position: relative;
-    padding: 0;
-    margin: 0;
-    list-style-type: none;
-    width: 100%;
-    height: 100%;
+.container {
+    display: flex;
+    flex-direction: column;
 }
 
-li {
-    position: absolute;
-    width: 100%;
+.stacked-schedules {
+    width: 85%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: .2rem;
+    align-self: center;
+}
+
+.schedule {
+    border-radius: .4rem;
     transition: transform 0.1s ease-in;
 }
 
-li:hover {
-    transform: scale(1.05);
+.schedule:hover {
+    transform: scale(1.1);
 }
 
-.grid-container {
-    position: absolute;
-    display: grid;
-    grid-template-columns: 1.4fr 4fr .1fr;
-    gap: .5rem;
+.capacitynumber {
+    color: white;
+    font-size: large;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
