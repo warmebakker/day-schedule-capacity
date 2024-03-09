@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import vertical, { ItemBase } from './components/verticalDayCapacity.vue';
+import daySchedule, { ItemBase } from './components/DaySchedule.vue';
 import { ref } from "vue";
 
 const dayCapacitySchemeMon = ref<ItemBase[]>([
-    { capacity: 16, dateTime: '2024-10-14T07:00:00.000+02:00' },
+    { capacity: 16, dateTime: '2024-10-14T06:00:00.000+02:00' },
     { capacity: 0, dateTime: '2024-10-14T18:00:00.000+02:00' },
 ]);
 
 const dayCapacitySchemeTue = ref<ItemBase[]>([
     { capacity: 10, dateTime: '2024-10-15T08:00:00.000+02:00' },
     { capacity: 5, dateTime: '2024-10-15T12:00:00.000+02:00' },
+    { capacity: 4, dateTime: '2024-10-15T12:15:00.000+02:00' },
+    { capacity: 5, dateTime: '2024-10-15T12:45:00.000+02:00' },
     { capacity: 12, dateTime: '2024-10-15T13:00:00.000+02:00' },
     { capacity: 0, dateTime: '2024-10-15T17:30:00.000+02:00' },
 ]);
@@ -26,15 +28,30 @@ const dayCapacitySchemeWed = ref<ItemBase[]>([
 </script>
 
 <template>
-    <div class="card" style="display: flex; justify-content: center; height: 20rem;">
-        <vertical class="vertical" :schedule="dayCapacitySchemeMon" />
-        <vertical class="vertical" :schedule="dayCapacitySchemeTue" :show-yaxis=true />
-        <vertical class="vertical" :schedule="dayCapacitySchemeWed" :show-yaxis-times=true />
+    <div class="card">
+        <daySchedule class="w-20" title="Ma" :schedule="dayCapacitySchemeMon" />
+        <daySchedule class="w-20" title="Di" :schedule="dayCapacitySchemeTue" :show-yaxis-times=false />
+        <daySchedule class="w-20" title="Wo" :schedule="dayCapacitySchemeWed" :show-yaxis-times=false />
+        <daySchedule class="w-20" title="Do" :schedule="dayCapacitySchemeTue" :show-yaxis-times=false />
+        <daySchedule class="w-20" title="Vr" :schedule="dayCapacitySchemeWed" :show-yaxis-times=false />
+        <daySchedule class="w-20" title="Za" :schedule="dayCapacitySchemeTue" :show-yaxis-times=true />
+        <daySchedule class="w-20" title="Zo" :schedule="dayCapacitySchemeMon" :show-yaxis-times=false />
     </div>
 </template>
 
 <style scoped>
-.vertical {
-    max-width: 10rem;
+.card {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: baseline;
+    justify-content: center;
+    gap: 1.5rem;
 }
-</style>
+
+.w-20 {
+    width: auto;
+    height: 20rem;
+}
+</style>./components/DaySchedule.vue
