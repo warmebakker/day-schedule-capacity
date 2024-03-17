@@ -1,3 +1,11 @@
+<script lang="ts">
+const getCapacityColorFallback = (capacity: number) => {
+    if (capacity === 0) return 'repeating-linear-gradient(45deg,transparent,transparent 1px,#f0f0f099 1px,#f0f0f099 10px)'
+    return capacity % 2 === 0 ? 'gray' : 'lightgray';
+}
+export default {}
+</script>
+
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue';
 
@@ -16,9 +24,11 @@ const props = withDefaults(defineProps<{
     title?: string,
     showYaxis?: boolean,
     showYaxisTimes?: boolean,
+    getCapacityColor?: (capacity: number) => string
 }>(), {
     showYaxis: true,
-    showYaxisTimes: true
+    showYaxisTimes: true,
+    getCapacityColor: (capacity: number) => getCapacityColorFallback(capacity)
 });
 
 const items = ref<BlockItem[]>([]);
@@ -33,10 +43,6 @@ const dayScafold = ref<BlockItem[]>([
     { content: '18:00', capacity: 0, dateTime: '' },
     { content: ' ', capacity: 0, dateTime: '' },
 ]);
-
-const capacityColors: { [key: number]: string } = {
-    0: 'repeating-linear-gradient(45deg,transparent,transparent 1px,#f0f0f099 1px,#f0f0f099 10px)'
-};
 
 onBeforeMount(() => {
     // if the first item fom props.schedule is not time 0:00, add it
@@ -59,22 +65,7 @@ onBeforeMount(() => {
 
     // remove last item which is temporarily
     items.value.pop();
-
-    createCapacityColors(props.schedule);
 });
-
-const createCapacityColors = (schedule: ItemBase[]): void => {
-    // Get unique capacities
-    const capacities = Array.from(new Set(schedule.map(item => item.capacity)));
-
-    // Create a color for each capacity
-    capacities.forEach((capacity, index) => {
-        if (!capacityColors[capacity]) {
-            const color = `hsl(${index * 15}, 70%, 65%)`;
-            capacityColors[capacity] = color;
-        }
-    });
-}
 
 const calculateItemsHeight = (schedule: ItemBase[]): BlockItem[] => {
     const items = schedule as BlockItem[];
@@ -101,7 +92,6 @@ const handleTouchStart = (event: any) => {
     target.classList.add('touchhover');
     setTimeout(() => { target.classList.remove('touchhover') }, 1500);
 };
-
 </script>
 
 <template>
@@ -122,7 +112,7 @@ const handleTouchStart = (event: any) => {
                 <div class="stacked-blocks absolute-full-w">
                     <div v-for="( item, index ) in  items " :key="index" :style="{ height: item.height }"
                         v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false, showDelay: 300 }">
-                        <div class="block" :style="{ background: capacityColors[item.capacity] }" @touchstart="handleTouchStart">
+                        <div class="block" :style="{ background: getCapacityColor(item.capacity) }" @touchstart="handleTouchStart">
                             <div class="capacitynumber" v-if="item.capacity > 0 && parseInt(item.height!.replace('%', '')) > 5">
                                 {{ item.capacity }}
                             </div>

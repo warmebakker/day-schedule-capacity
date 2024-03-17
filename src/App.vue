@@ -1,41 +1,61 @@
 <script setup lang="ts">
 import daySchedule, { ItemBase } from './components/DaySchedule.vue';
-import { ref } from "vue";
+import { onBeforeMount } from 'vue';
+import { createCapacityColors, getColorForCapacity } from './colorForCapacityNumbers';
 
-const dayCapacitySchemeMon = ref<ItemBase[]>([
-    { capacity: 16, dateTime: '2024-10-14T06:00:00.000+02:00' },
-    { capacity: 0, dateTime: '2024-10-14T18:00:00.000+02:00' },
-]);
+const days: { [key: string]: ItemBase[] } = {
+    'Ma': [
+        { capacity: 10, dateTime: '2024-10-14T06:00:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-14T18:00:00.000+02:00' },
+    ],
+    'Di': [
+        { capacity: 10, dateTime: '2024-10-15T08:00:00.000+02:00' },
+        { capacity: 5, dateTime: '2024-10-15T12:00:00.000+02:00' },
+        { capacity: 1, dateTime: '2024-10-15T12:15:00.000+02:00' },
+        { capacity: 3, dateTime: '2024-10-15T12:45:00.000+02:00' },
+        { capacity: 4, dateTime: '2024-10-15T13:00:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-15T17:30:00.000+02:00' },
+    ],
+    'Wo': [
+        { capacity: 211, dateTime: '2024-10-16T04:30:00.000+02:00' },
+        { capacity: 210, dateTime: '2024-10-16T08:00:00.000+02:00' },
+        { capacity: 213, dateTime: '2024-10-16T12:00:00.000+02:00' },
+        { capacity: 212, dateTime: '2024-10-16T13:00:00.000+02:00' },
+        { capacity: 25, dateTime: '2024-10-16T17:30:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-16T22:30:00.000+02:00' },
+    ],
+    'Do': [
+        { capacity: 26, dateTime: '2024-10-14T04:00:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-14T19:30:00.000+02:00' },
+    ],
+    'Vr': [
+        { capacity: 100, dateTime: '2024-10-16T04:30:00.000+02:00' },
+        { capacity: 10, dateTime: '2024-10-16T08:00:00.000+02:00' },
+        { capacity: 5, dateTime: '2024-10-16T12:00:00.000+02:00' },
+        { capacity: 12, dateTime: '2024-10-16T13:00:00.000+02:00' },
+        { capacity: 5, dateTime: '2024-10-16T17:30:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-16T22:30:00.000+02:00' },
+    ],
+    'Za': [
+        { capacity: 7, dateTime: '2024-10-14T06:00:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-14T18:00:00.000+02:00' },
+    ],
+    'Zo': [
+        { capacity: 7, dateTime: '2024-10-14T06:00:00.000+02:00' },
+        { capacity: 0, dateTime: '2024-10-14T18:00:00.000+02:00' },
+    ],
+};
 
-const dayCapacitySchemeTue = ref<ItemBase[]>([
-    { capacity: 10, dateTime: '2024-10-15T08:00:00.000+02:00' },
-    { capacity: 5, dateTime: '2024-10-15T12:00:00.000+02:00' },
-    { capacity: 4, dateTime: '2024-10-15T12:15:00.000+02:00' },
-    { capacity: 5, dateTime: '2024-10-15T12:45:00.000+02:00' },
-    { capacity: 12, dateTime: '2024-10-15T13:00:00.000+02:00' },
-    { capacity: 0, dateTime: '2024-10-15T17:30:00.000+02:00' },
-]);
-
-
-const dayCapacitySchemeWed = ref<ItemBase[]>([
-    { capacity: 100, dateTime: '2024-10-16T04:30:00.000+02:00' },
-    { capacity: 10, dateTime: '2024-10-16T08:00:00.000+02:00' },
-    { capacity: 5, dateTime: '2024-10-16T12:00:00.000+02:00' },
-    { capacity: 12, dateTime: '2024-10-16T13:00:00.000+02:00' },
-    { capacity: 5, dateTime: '2024-10-16T17:30:00.000+02:00' },
-    { capacity: 0, dateTime: '2024-10-16T22:30:00.000+02:00' },
-]);
+onBeforeMount(() => {
+    createCapacityColors(Object.values(days)
+        .flatMap(day => day.map(item => item.capacity)));
+});
 </script>
 
 <template>
     <div class="card">
-        <daySchedule class="w-20" title="Ma" :schedule="dayCapacitySchemeMon" />
-        <daySchedule class="w-20" title="Di" :schedule="dayCapacitySchemeTue" :show-yaxis-times=false />
-        <daySchedule class="w-20" title="Wo" :schedule="dayCapacitySchemeWed" :show-yaxis-times=false />
-        <daySchedule class="w-20" title="Do" :schedule="dayCapacitySchemeTue" :show-yaxis-times=false />
-        <daySchedule class="w-20" title="Vr" :schedule="dayCapacitySchemeWed" :show-yaxis-times=false />
-        <daySchedule class="w-20" title="Za" :schedule="dayCapacitySchemeTue" :show-yaxis-times=true />
-        <daySchedule class="w-20" title="Zo" :schedule="dayCapacitySchemeMon" :show-yaxis-times=false />
+        <daySchedule v-for="(value, key, index) in days" :key="key" class="w-20" :title="key as string" :schedule="value" :show-yaxis-times="index === 0 || index === 5"
+            :get-capacity-colors="getColorForCapacity" />
     </div>
 </template>
 
@@ -54,4 +74,4 @@ const dayCapacitySchemeWed = ref<ItemBase[]>([
     width: auto;
     height: 20rem;
 }
-</style>./components/DaySchedule.vue
+</style>
