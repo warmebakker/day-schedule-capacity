@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import daySchedule, { ItemBase } from './components/DaySchedule.vue';
 import { onBeforeMount } from 'vue';
-import { createCapacityColors, getColorForCapacity } from './colorForCapacityNumbers';
+import { createCapacityColors, capacityColors } from './colorForCapacityNumbers';
 
 const days: { [key: string]: ItemBase[] } = {
     'Ma': [
@@ -50,12 +50,13 @@ onBeforeMount(() => {
     createCapacityColors(Object.values(days)
         .flatMap(day => day.map(item => item.capacity)));
 });
+
 </script>
 
 <template>
     <div class="card">
-        <daySchedule v-for="(value, key, index) in days" :key="key" class="w-20" :title="key as string" :schedule="value" :show-yaxis-times="index === 0 || index === 5"
-            :get-capacity-colors="getColorForCapacity" />
+        <daySchedule v-for="(value, key, index) in days" :key="key" class="w-20" :title="key as string" :capacity-color="capacityColors" :schedule="value"
+            :show-yaxis-times="index === 0 || index === 5" />
     </div>
 </template>
 

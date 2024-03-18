@@ -1,11 +1,3 @@
-<script lang="ts">
-const getCapacityColorFallback = (capacity: number) => {
-    if (capacity === 0) return 'repeating-linear-gradient(45deg,transparent,transparent 1px,#f0f0f099 1px,#f0f0f099 10px)'
-    return capacity % 2 === 0 ? 'gray' : 'lightgray';
-}
-export default {}
-</script>
-
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue';
 
@@ -24,11 +16,10 @@ const props = withDefaults(defineProps<{
     title?: string,
     showYaxis?: boolean,
     showYaxisTimes?: boolean,
-    getCapacityColor?: (capacity: number) => string
+    capacityColor: { [key: number]: string }
 }>(), {
     showYaxis: true,
     showYaxisTimes: true,
-    getCapacityColor: (capacity: number) => getCapacityColorFallback(capacity)
 });
 
 const items = ref<BlockItem[]>([]);
@@ -112,7 +103,7 @@ const handleTouchStart = (event: any) => {
                 <div class="stacked-blocks absolute-full-w">
                     <div v-for="( item, index ) in  items " :key="index" :style="{ height: item.height }"
                         v-tooltip="{ value: `Vanaf ${item.content} uur\nCapaciteit ${item.capacity}`, autoHide: false, showDelay: 300 }">
-                        <div class="block" :style="{ background: getCapacityColor(item.capacity) }" @touchstart="handleTouchStart">
+                        <div class="block" :style="{ background: props.capacityColor[item.capacity] }" @touchstart="handleTouchStart">
                             <div class="capacitynumber" v-if="item.capacity > 0 && parseInt(item.height!.replace('%', '')) > 5">
                                 {{ item.capacity }}
                             </div>

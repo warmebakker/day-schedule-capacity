@@ -16,5 +16,3 @@ export const createCapacityColors = (schedule: number[]): void => {
         }
     });
 }
-
-export const getColorForCapacity = (capacity: number) => capacityColors[capacity] ?? 'gray';
